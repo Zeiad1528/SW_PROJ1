@@ -3,8 +3,10 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const Schema = mongoose.Schema;
 const backup = require('mongoose-backup');
+const speakeasy = require('speakeasy');
 const CryptoJS = require('crypto-js');
 
+/*
 const userSchema = new Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -12,7 +14,12 @@ const userSchema = new Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     role: { type: String, required: true },
+    mfa: {
+        enabled: { type: Boolean, default: false },
+        secret: { type: String },
+    },
 });
+*/
 
 // security measures
 function encrypt(text) {
@@ -65,13 +72,55 @@ function decryptMessage(encryptedMessage, secret) {
 }
 
 //data backup and recovery procedures
-mongoose.connection.db.backup(function(err, res) {
-    if (err) {
-        console.error('Error while backing up the database:', err);
-    } else {
-        console.log('Backup successfully created:', res);
-    }
+// Establish a connection to the MongoDB database.
+mongoose.connect('mongodb://localhost/mydatabase', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Define the backup directory.
+const backupDir = 'backups/';
+
+// Create the backup directory if it doesn't exist.
+if (!fs.existsSync(backupDir)){
+    fs.mkdirSync(backupDir);
+}
+
+// Set up the backup function.
+backup.init({
+    root: backupDir,
+    callback: function(err) {
+        if (err) {
+            console.error('Error while backing up the database:', err);
+        } else {
+            console.log('Backup successfully created');
+        }
+        // Close the connection to the MongoDB database.
+        mongoose.connection.close();
+    },
+    mongoose: mongoose,
 });
+
+// Execute the backup function.
+backup.backup();
+
+const security = require('./security');
+const user = await security.findById(userId);
+
+if (!user.mfa.enabled) {
+    const secret = speakeasy.generateSecret({ length: 20 });
+    user.mfa.secret = secret.base32;
+    user.mfa.enabled = true;
+    await user.save();
+    if (user.mfa.enabled) {
+        const isTokenValid = speakeasy.totp.verify({
+            secret: user.mfa.secret,
+            encoding: 'base32',
+            token: mfaToken,
+        });
+    
+        if (!isTokenValid) {
+            // The token is not valid. You can return an error message or handle it as needed.
+        }
+    }
+}
 
 module.exports = Security;
 
