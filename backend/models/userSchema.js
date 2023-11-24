@@ -26,6 +26,10 @@ const userSchema = new Schema({
         unique:true
 
       },
+    mfa: {
+        enabled: { type: Boolean, default: false },
+        secret: { type: String },
+    },
      
     
       role: {
