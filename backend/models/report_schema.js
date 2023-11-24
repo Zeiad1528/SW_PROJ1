@@ -24,10 +24,10 @@ const ReportSchema = new Schema({
         type: String,
 
             type: mongoose.Schema.Types.ObjectId(),
-                ref: "Ticket",
+                ref: "tickets",
                 required: true,
                 default : open,
-                select: 'Status',
+                select: 'status',
             
         required: true,
 
@@ -44,9 +44,9 @@ const ReportSchema = new Schema({
         type: Number,
 
             type: mongoose.Schema.Types.ObjectId(),
-            ref: "Agent", 
+            ref: "agent_schema", 
             required: true,
-            select: 'Performance', 
+            select: 'rating', 
 
         required: true,
         
@@ -62,9 +62,9 @@ const ReportSchema = new Schema({
           type: Number,
 
             type: mongoose.Schema.Types.ObjectId(),
-            ref: "Agent",  
+            ref: "agent_schema",  
             required: true,
-            select: 'Rating', 
+            select: 'rating', 
 
         required: true,
 
