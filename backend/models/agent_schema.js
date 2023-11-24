@@ -44,6 +44,10 @@ const AgentSchema = new Schema({
         type: Boolean,
         default: true
       },
+    mfa: {
+        enabled: { type: Boolean, default: false },
+        secret: { type: String },
+    },
       major:{
         enum:['Software','Hardware','Network'],
         type:Number
